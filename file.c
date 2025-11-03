@@ -14,10 +14,10 @@ static int is_dir(const char *path);
 /* -------------------------- External functions -------------------------- */
 
 int get_size_of_file(char *file) {
-	char path_buf[PATH_MAX + 1];
-	char *dir_path = realpath(file, path_buf);
 	// Check if file is a file or dir
-	if (is_dir(dir_path)) {
+	if (is_dir(file)) {
+		char path_buf[PATH_MAX + 1];
+		char *dir_path = realpath(file, path_buf);
 		if (dir_path == NULL) {
 			perror("realpath");
 			return -1;
