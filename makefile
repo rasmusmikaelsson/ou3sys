@@ -1,8 +1,11 @@
 cFlags = -g -std=gnu11 -Werror -Wall -Wextra -Wpedantic -Wmissing-declarations -Wmissing-prototypes -Wold-style-definition
 cc = gcc
 
-mdu: mdu.o
-	$(cc) $(cFlags) -o mdu mdu.o
+mdu: mdu.o file.o
+	$(cc) $(cFlags) -o mdu mdu.o file.o
 
-mdu.o: mdu.c
+mdu.o: mdu.c file.h
 	$(cc) $(cFlags) -c mdu.c
+
+file.o: file.c
+	$(cc) $(cFlags) -c file.c

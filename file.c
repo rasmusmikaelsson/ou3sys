@@ -9,43 +9,47 @@
 
 /* ------------------ Declarations of internal functions ------------------ */
 
-static int is_file(char *filename);
+static int is_dir(const char *path);
 
 /* -------------------------- External functions -------------------------- */
 
 int get_size_of_file(char *file) {
-	char path_buf[PATH_MAX];
-	DIR *dir;
-
+	char path_buf[PATH_MAX + 1];
+	char *dir_path = realpath(file, path_buf);
 	// Check if file is a file or dir
-	if(is_file(file) != 0) {
-		
-		// Get the path to the given directory
-		char *dir_path = realpath(file, path_buf);
-		
-		// TODO:	Open directory and loop 
-		//			trough files in the given directory
-		if((dir = opendir(dir_path)) == NULL) {
-			fprintf(stderr, "Directory failed to open\n");
+	if (is_dir(dir_path)) {
+		if (dir_path == NULL) {
+			perror("realpath");
+			return -1;
 		}
-	} else {
-		
-	} 
+
+		printf("realpath: %s\n", dir_path);
+
+		DIR *dir = opendir(dir_path);
+		if (dir == NULL) {
+			perror("opendir");
+			return -1;
+		}
+
+		struct dirent *entry;
+		while ((entry = readdir(dir)) != NULL) {
+			printf("%s/%s\n", dir_path, entry->d_name);
+		}
+
+		closedir(dir);
+	}
+
+	return 0;
 }
 
 /* -------------------------- Internal functions -------------------------- */
 
-/** 
- * Checks if the file given is a file or a directory
- *
- * @param filename	File to check
- * @return			0 if target is not a file, otherwise 1
- */
-static int is_file(char *filename) {
-	FILE *check_file = fopen(filename, "r");
-	if(check_file) {
-		fclose(check_file);
-		return 1;
-	}
-	return 0;
+static int is_dir(const char *path) {
+    struct stat sb;
+	printf("Trying to lstat: %s\n", path);
+    if (lstat(path, &sb) == -1) {
+        perror("lstat");
+        return 0;
+    }
+    return S_ISDIR(sb.st_mode);
 }

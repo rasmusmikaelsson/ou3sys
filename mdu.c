@@ -6,14 +6,13 @@
 /* ------------------ Declarations of internal functions ------------------ */
 
 static int parse_commandline(int argc, char **argv, int num_of_threads);
-static int is_file(char *filename);
 
 /* -------------------------- External functions -------------------------- */
 
 int main(int argc, char **argv) {
 	int num_of_threads = 1;
 
-	if(argc < 1) {
+	if(argc < 2) {
 		fprintf(stderr, "Usage: %s [-j num_of_threads] file ...\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
@@ -22,11 +21,14 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Parsing of commandline failed\n");
 	}
 
+	//TODO:	For each file, get the size of that file.
+	//		If file is dir, calculate all files in that dir.
+	//		If dir is found in dir, repeat.
 	for(int i = optind; i < argc; i++) {
-		//TODO:	For each file, get the size of that file.
-		//		If file is dir, calculate all files in that dir.
-		//		If dir is found in dir, repeat.
-		get_size_of_file(argv[i]);
+		printf("File %d: %s\n", i, argv[i]);
+		if(get_size_of_file(argv[i]) == -1) {
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	return 0;
