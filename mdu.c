@@ -8,7 +8,7 @@
 static int parse_commandline(int argc, char **argv, int num_of_threads);
 
 /* -------------------------- External functions -------------------------- */
-
+// YES
 int main(int argc, char **argv) {
 	int num_of_threads = 1;
 
