@@ -1,7 +1,9 @@
 
 #include "file.h"
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -10,6 +12,7 @@
 /* ------------------ Declarations of internal functions ------------------ */
 
 static int is_dir(const char *path);
+static int get_file_size(const char *path);
 
 /* -------------------------- External functions -------------------------- */
 
@@ -33,11 +36,22 @@ int calculate_size(char *file) {
 
 		struct dirent *entry;
 		while ((entry = readdir(dir)) != NULL) {
-			printf("%s/%s\n", dir_path, entry->d_name);
-			//calculate_size();
+			// Skip . and .. dir
+			if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+				continue;
+			}
+
+			char full_path[PATH_MAX + 1];
+
+			printf("%s/%s\n", dir_path, entry->d_name);		
+			
+			calculate_size(full_path);
 		}
 
 		closedir(dir);
+	} else {
+		printf("%s is a file\n", file);
+		printf("size of %s: %d bytes\n", file, get_file_size(file));
 	}
 
 	return 0;
@@ -50,8 +64,19 @@ static int is_dir(const char *path) {
 	printf("Trying to lstat: %s\n", path);
     if (lstat(path, &sb) == -1) {
         perror("lstat");
-        return 0;
+        return -1;
     }
 	
     return S_ISDIR(sb.st_mode);
+}
+
+static int get_file_size(const char *path) {
+	struct stat sp;
+	
+	if(lstat(path, &sp) == -1) {
+		perror("lstat");
+		return -1;
+	}
+
+	return sp.st_size;
 }
