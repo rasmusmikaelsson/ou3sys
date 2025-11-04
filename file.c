@@ -13,7 +13,7 @@ static int is_dir(const char *path);
 
 /* -------------------------- External functions -------------------------- */
 
-int get_size_of_file(char *file) {
+int calculate_size(char *file) {
 	// Check if file is a file or dir
 	if (is_dir(file)) {
 		char path_buf[PATH_MAX + 1];
@@ -34,6 +34,7 @@ int get_size_of_file(char *file) {
 		struct dirent *entry;
 		while ((entry = readdir(dir)) != NULL) {
 			printf("%s/%s\n", dir_path, entry->d_name);
+			//calculate_size();
 		}
 
 		closedir(dir);
@@ -51,5 +52,6 @@ static int is_dir(const char *path) {
         perror("lstat");
         return 0;
     }
+	
     return S_ISDIR(sb.st_mode);
 }

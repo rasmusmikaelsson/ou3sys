@@ -13,11 +13,11 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +24 mdu.c
-badd +0 term://~/shared/ou3sys//161840:/bin/bash
+badd +30 mdu.c
+badd +1 term://~/shared/ou3sys//161840:/bin/bash
 badd +8 makefile
-badd +27 file.c
-badd +0 term://~/shared/ou3sys//170026:/bin/bash
+badd +1 file.c
+badd +1 term://~/shared/ou3sys//170026:/bin/bash
 badd +7 file.h
 argglobal
 %argdel
@@ -102,13 +102,14 @@ setlocal foldlevel=0
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 169 - ((18 * winheight(0) + 9) / 19)
+let s:l = 11 - ((10 * winheight(0) + 9) / 19)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 169
+keepjumps 11
 normal! 028|
 wincmd w
+3wincmd w
 wincmd =
 tabnext
 edit file.c
@@ -118,10 +119,6 @@ set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
 1wincmd h
-wincmd w
-wincmd _ | wincmd |
-split
-1wincmd k
 wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
@@ -168,37 +165,15 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 7 - ((6 * winheight(0) + 10) / 20)
+let s:l = 7 - ((6 * winheight(0) + 20) / 40)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
 keepjumps 7
 normal! 054|
 wincmd w
-argglobal
-if bufexists(fnamemodify("term://~/shared/ou3sys//170026:/bin/bash", ":p")) | buffer term://~/shared/ou3sys//170026:/bin/bash | else | edit term://~/shared/ou3sys//170026:/bin/bash | endif
-if &buftype ==# 'terminal'
-  silent file term://~/shared/ou3sys//170026:/bin/bash
-endif
-balt file.c
-setlocal foldmethod=manual
-setlocal foldexpr=0
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=0
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-let s:l = 92 - ((18 * winheight(0) + 9) / 19)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 92
-normal! 028|
-wincmd w
-3wincmd w
 wincmd =
-tabnext 2
+tabnext 1
 set stal=1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

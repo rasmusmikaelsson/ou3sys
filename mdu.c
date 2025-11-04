@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	//		If dir is found in dir, repeat.
 	for(int i = optind; i < argc; i++) {
 		printf("File %d: %s\n", i, argv[i]);
-		if(get_size_of_file(argv[i]) == -1) {
+		if(calculate_size(argv[i]) == -1) {
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -59,7 +59,6 @@ static int parse_commandline(int argc, char **argv, int num_of_threads) {
 				printf("Unknown flag..\n");
 				break;
 			default:
-				// should never get here..
 				printf("Error\n");
 				return 1;
 		}

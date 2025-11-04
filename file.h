@@ -6,7 +6,7 @@
  * @param file	File to get size of
  * @return		Size of file or directory, -1 on error
  */
-int get_size_of_file(char *file);
+int calculate_size(char *file);
 
 #endif
 
