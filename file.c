@@ -1,6 +1,5 @@
 
 #include "file.h"
-#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,74 +8,43 @@
 #include <dirent.h>
 #include <limits.h>
 
-/* ------------------ Declarations of internal functions ------------------ */
-
-static int is_dir(const char *path);
-static int get_file_size(const char *path);
-
 /* -------------------------- External functions -------------------------- */
 
-int calculate_size(char *file) {
-	// Check if file is a file or dir
-	if (is_dir(file)) {
-		char path_buf[PATH_MAX + 1];
-		char *dir_path = realpath(file, path_buf);
-		if (dir_path == NULL) {
-			perror("realpath");
-			return -1;
-		}
+int calculate_size(char *filename) {
+	struct stat sb;
 
-		printf("realpath: %s\n", dir_path);
+	if(lstat(filename, &sb) == -1) {
+		perror("lstat");
+		return -1;
+	}
 
-		DIR *dir = opendir(dir_path);
-		if (dir == NULL) {
+	long int sum = sb.st_blocks;
+
+	// Check if its a directory
+	if (S_ISDIR(sb.st_mode)) {
+
+		DIR *current_dir = opendir(filename);
+		if (current_dir == NULL) {
 			perror("opendir");
 			return -1;
 		}
 
 		struct dirent *entry;
-		while ((entry = readdir(dir)) != NULL) {
+		while ((entry = readdir(current_dir)) != NULL) {
 			// Skip . and .. dir
 			if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
 				continue;
 			}
 
-			char full_path[PATH_MAX + 1];
-
-			printf("%s/%s\n", dir_path, entry->d_name);		
+			char next_path[PATH_MAX];
+			snprintf(next_path, PATH_MAX,"%s/%s", filename, entry->d_name);
 			
-			calculate_size(full_path);
+			sum += calculate_size(next_path);
 		}
 
-		closedir(dir);
-	} else {
-		printf("%s is a file\n", file);
-		printf("size of %s: %d bytes\n", file, get_file_size(file));
+		closedir(current_dir);
 	}
 
-	return 0;
+	return sum;
 }
 
-/* -------------------------- Internal functions -------------------------- */
-
-static int is_dir(const char *path) {
-    struct stat sb;
-	printf("Trying to lstat: %s\n", path);
-    if (lstat(path, &sb) == -1) {
-        perror("lstat");
-        return -1;
-    }
-	
-    return S_ISDIR(sb.st_mode);
-}
-
-static int get_file_size(const char *path) {
-	struct stat sp;
-	
-	if(lstat(path, &sp) == -1) {
-		perror("lstat");
-		return -1;
-	}
-
-	return sp.st_size;
-}

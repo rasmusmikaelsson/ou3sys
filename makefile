@@ -16,3 +16,4 @@ file.o: file.c
 .PHONY: clean
 clean:
 	@rm -f mdu
+
