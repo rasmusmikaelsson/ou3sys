@@ -1,18 +1,17 @@
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
+#include "queue.h"
 
 typedef struct Node {
-	int value;
+	void *value;
 	struct Node *next;
 } Node;
 
-typedef struct {
+struct Queue{
     Node *head;
     Node *tail;
 	int size;
-} Queue;
+};
 
 Queue *create_queue() {
 	Queue *q = malloc(sizeof(Queue));
@@ -31,18 +30,20 @@ bool is_empty(Queue *q) {
 	return (q->size == 0);
 }
 
-int peek(Queue *q, bool *status) {
+void *peek(Queue *q) {
 	if(is_empty(q)) {
-		*status = false;
 		return NULL;
 	}
 	
-	*status = true;
 	return q->head->value;
 }
 
-int enqueue(Queue *q, int value) {
+int enqueue(Queue *q, void *value) {
 	Node *new_node = malloc(sizeof(Node));
+	if(new_node == NULL) {
+		perror("malloc");
+		return -1;
+	}
 	
 	new_node->value = value;
 	new_node->next = NULL;
@@ -56,16 +57,15 @@ int enqueue(Queue *q, int value) {
 	}
 
 	q->size++;
+	return 1;
 }
 
-int dequeue(Queue *q, bool *status) {
+void *dequeue(Queue *q) {
 	if(is_empty(q)) {
-		*status = false;
 		return NULL;
 	}
-	*status = true;
 
-	int value = q->head->value;
+	void *value = q->head->value;
 	Node *old_head = q->head;
 
 	// If last element, reset the queue
@@ -82,14 +82,12 @@ int dequeue(Queue *q, bool *status) {
 }
 
 void free_queue(Queue *q) {
-	Node *current_node = q->head;
-
-	// Remove elements one by one
-	while(current_node == NULL) {
-		Node *temp = current_node;
-		current_node = current_node->next;
-		free(temp);
-	}
-
-	free(q);
+    Node *current_node = q->head;
+    while (current_node != NULL) {
+        Node *temp = current_node;
+        current_node = current_node->next;
+        free(temp);
+    }
+    free(q);
 }
+

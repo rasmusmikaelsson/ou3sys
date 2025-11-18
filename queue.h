@@ -1,6 +1,8 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include <stdbool.h>
+
 typedef struct Queue Queue;
 
 /**
@@ -29,10 +31,10 @@ bool is_empty(Queue *q);
 /**
  * Gets first item in the queue.
  *
- * @param q		Queue pointer
- * @return		Element at the front of the queue, -1 if queue is empty
+ * @param q			Queue pointer
+ * @return			Element at the front of the queue, -1 if queue is empty
  */
-int peek(Queue *q);
+void *peek(Queue *q);
 
 /**
  * Add item to queue
@@ -41,15 +43,16 @@ int peek(Queue *q);
  * @param item	Item to add to queue
  * @return		0 on success, -1 if queue is full
  */
-int enqueue(Queue *q, int item);
+int enqueue(Queue *q, void *item);
 
 /**
  * Removes item first in line from queue.
  *
- * @param q		Queue pointer
+ * @param q			Queue pointer
+ * @param status	TODO
  * @return
  */
-int dequeue(Queue *q);
+void *dequeue(Queue *q);
 
 /**
  * frees all the queues allocated memory on the heap

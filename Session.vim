@@ -13,16 +13,19 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +30 mdu.c
-badd +1 term://~/shared/ou3sys//161840:/bin/bash
+badd +54 mdu.c
+badd +546 term://~/shared/ou3sys//161840:/bin/bash
 badd +8 makefile
-badd +1 file.c
+badd +71 file.c
 badd +1 term://~/shared/ou3sys//170026:/bin/bash
 badd +7 file.h
+badd +57 queue.h
+badd +89 queue.c
 argglobal
 %argdel
 $argadd mdu.c
 set stal=2
+tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabrewind
 edit mdu.c
@@ -58,12 +61,12 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 30 - ((29 * winheight(0) + 20) / 40)
+let s:l = 38 - ((37 * winheight(0) + 20) / 40)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 30
-normal! 024|
+keepjumps 38
+normal! 031|
 wincmd w
 argglobal
 if bufexists(fnamemodify("makefile", ":p")) | buffer makefile | else | edit makefile | endif
@@ -81,12 +84,12 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 8 - ((7 * winheight(0) + 10) / 20)
+let s:l = 19 - ((18 * winheight(0) + 11) / 22)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 8
-normal! 028|
+keepjumps 19
+normal! 0
 wincmd w
 argglobal
 if bufexists(fnamemodify("term://~/shared/ou3sys//161840:/bin/bash", ":p")) | buffer term://~/shared/ou3sys//161840:/bin/bash | else | edit term://~/shared/ou3sys//161840:/bin/bash | endif
@@ -102,14 +105,13 @@ setlocal foldlevel=0
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 11 - ((10 * winheight(0) + 9) / 19)
+let s:l = 1027 - ((16 * winheight(0) + 8) / 17)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 11
+keepjumps 1027
 normal! 028|
 wincmd w
-3wincmd w
 wincmd =
 tabnext
 edit file.c
@@ -142,12 +144,12 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 39 - ((20 * winheight(0) + 20) / 40)
+let s:l = 10 - ((9 * winheight(0) + 20) / 40)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 39
-normal! 013|
+keepjumps 10
+normal! 0
 wincmd w
 argglobal
 if bufexists(fnamemodify("file.h", ":p")) | buffer file.h | else | edit file.h | endif
@@ -165,12 +167,74 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 7 - ((6 * winheight(0) + 20) / 40)
+let s:l = 8 - ((7 * winheight(0) + 20) / 40)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 7
-normal! 054|
+keepjumps 8
+normal! 03|
+wincmd w
+wincmd =
+tabnext
+edit queue.c
+let s:save_splitbelow = &splitbelow
+let s:save_splitright = &splitright
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
+let &splitbelow = s:save_splitbelow
+let &splitright = s:save_splitright
+wincmd t
+let s:save_winminheight = &winminheight
+let s:save_winminwidth = &winminwidth
+set winminheight=0
+set winheight=1
+set winminwidth=0
+set winwidth=1
+wincmd =
+argglobal
+balt queue.h
+setlocal foldmethod=manual
+setlocal foldexpr=0
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=0
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 26 - ((10 * winheight(0) + 20) / 40)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 26
+normal! 020|
+wincmd w
+argglobal
+if bufexists(fnamemodify("queue.h", ":p")) | buffer queue.h | else | edit queue.h | endif
+if &buftype ==# 'terminal'
+  silent file queue.h
+endif
+balt file.c
+setlocal foldmethod=manual
+setlocal foldexpr=0
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=0
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 40 - ((39 * winheight(0) + 20) / 40)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 40
+normal! 029|
 wincmd w
 wincmd =
 tabnext 1
