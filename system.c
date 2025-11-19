@@ -6,14 +6,14 @@
 
 #include "system.h"
 #include "queue.h"
-#include "worker.h"   // <-- worker() is declared here
+#include "worker.h"
 
 /**
  * system_enqueue - Enqueue a task in a thread-safe way.
  * @system: Pointer to System struct.
  * @task: Task to enqueue.
  */
-void system_enqueue(System *system, void *task)
+void system_enqueue(System *system, Task *task)
 {
     pthread_mutex_lock(system->lock);
     enqueue(system->queue, task);

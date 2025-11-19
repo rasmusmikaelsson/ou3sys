@@ -36,11 +36,13 @@ int process_directory(System *system, const char *path)
             strcmp(entry->d_name, "..") == 0)
             continue;
 
-        char *next_path = malloc(PATH_MAX);
-        snprintf(next_path, PATH_MAX, "%s/%s", path, entry->d_name);
+        /* Create task for next path */
+        Task *child_task = malloc(sizeof(Task));
+        child_task->path = malloc(PATH_MAX);
+        snprintf(child_task->path, PATH_MAX, "%s/%s", path, entry->d_name);
+        child_task->sum = 0;
 
-        /* Enqueue next task */
-        system_enqueue(system, next_path);
+        system_enqueue(system, child_task);
     }
 
     closedir(dir);
@@ -52,61 +54,75 @@ int process_directory(System *system, const char *path)
  * @system: Pointer to System struct.
  * @path: Path to process.
  */
-void process_path(System *system, char *path)
-{
+void process_path(System *system, Task *task) {
     struct stat sb;
-    if (lstat(path, &sb) == -1) {
+    if (lstat(task->path, &sb) == -1) {
         perror("lstat");
-        free(path);
         return;
     }
 
-    // Kontrollera om filen redan räknats
+    // Kolla inode-set
     if (!inode_seen(system, sb.st_dev, sb.st_ino)) {
         pthread_mutex_lock(system->lock);
-        *(system->sum) += sb.st_blocks;
+        task->sum += sb.st_blocks;  // summera lokalt för denna task
         pthread_mutex_unlock(system->lock);
     }
 
-    // Om katalog, enqueue children
     if (S_ISDIR(sb.st_mode)) {
-        process_directory(system, path);
-    }
+        DIR *dir = opendir(task->path);
+        if (!dir) return;
 
-    free(path);
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL) {
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                continue;
+
+            Task *child_task = malloc(sizeof(Task));
+            child_task->path = malloc(PATH_MAX);
+            snprintf(child_task->path, PATH_MAX, "%s/%s", task->path, entry->d_name);
+            child_task->sum = 0;
+            system_enqueue(system, child_task);
+        }
+        closedir(dir);
+    }
 }
+
 
 /**
  * worker - Thread loop for processing tasks.
  * @args: Pointer to System struct.
  */
-void *worker(void *args)
-{
+void *worker(void *args) {
     System *system = (System *)args;
 
     while (1) {
         pthread_mutex_lock(system->lock);
-
-        /* Wait for tasks unless done */
         while (is_empty(system->queue) && *(system->done) == 0) {
             pthread_cond_wait(system->cond, system->lock);
         }
-
-        /* Stop condition */
         if (*(system->done) == 1 && is_empty(system->queue)) {
             pthread_mutex_unlock(system->lock);
             return NULL;
         }
 
-        /* Get next task */
-        char *task = dequeue(system->queue);
-
+        Task *task = dequeue(system->queue);
         pthread_mutex_unlock(system->lock);
 
+        // Bearbeta task: summera filer/kataloger
         process_path(system, task);
-    }
 
-    return NULL;
+        // Uppdatera den globala summan med denna tasks sum
+        pthread_mutex_lock(system->lock);
+        *system->sum += task->sum;
+        pthread_mutex_unlock(system->lock);
+
+        // Skriv ut lokal sum för tasken
+        printf("%s\t%ld\n", task->path, task->sum);
+
+        // Frigör task-minne
+        free(task->path);
+        free(task);
+    }
 }
 
 static bool inode_seen(System *sys, dev_t st_dev, ino_t st_ino)

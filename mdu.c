@@ -1,10 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <linux/limits.h>
-
 #include "system.h"
+
+static int parse_commandline(int argc, char **argv);
+
+int main(int argc, char **argv)
+{
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s [-j n_threads] file ...\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    int n_threads = parse_commandline(argc, argv);
+    if (n_threads < 0)
+        exit(EXIT_FAILURE);
+
+    pthread_t threads[n_threads];
+    System system;
+
+    /* Initialize system and threads */
+    if (system_init(&system, threads, n_threads) < 0) {
+        fprintf(stderr, "Initialization failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Enqueue all start paths */
+	for (int i = optind; i < argc; i++) {
+		Task *task = malloc(sizeof(Task));
+		task->path = malloc(PATH_MAX);
+		snprintf(task->path, PATH_MAX, "%s", argv[i]);
+		task->sum = 0;
+		system_enqueue(&system, task);
+	}
+
+    /* Wait for threads */
+    system_join(&system, threads, n_threads);
+
+    /* Print total */
+    printf("Total size: %ld\n", *system.sum);
+
+    /* Free memory */
+    system_destroy(&system);
+
+    return 0;
+}
 
 /**
  * parse_commandline - Parses -j flag and returns number of threads.
@@ -31,44 +72,4 @@ static int parse_commandline(int argc, char **argv)
     }
 
     return n_threads;
-}
-
-int main(int argc, char **argv)
-{
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s [-j n_threads] file ...\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    int n_threads = parse_commandline(argc, argv);
-    if (n_threads < 0)
-        exit(EXIT_FAILURE);
-
-    pthread_t threads[n_threads];
-    System system;
-
-    /* Initialize system and threads */
-    if (system_init(&system, threads, n_threads) < 0) {
-        fprintf(stderr, "Initialization failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    /* Enqueue all start paths */
-    for (int i = optind; i < argc; i++) {
-        char *path = malloc(PATH_MAX);
-        memcpy(path, argv[i], strlen(argv[i]) + 1);
-
-        system_enqueue(&system, path);
-    }
-
-    /* Wait for threads */
-    system_join(&system, threads, n_threads);
-
-    /* Print total */
-    printf("Total size: %ld\n", *system.sum);
-
-    /* Free memory */
-    system_destroy(&system);
-
-    return 0;
 }

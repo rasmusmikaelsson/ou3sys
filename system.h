@@ -11,6 +11,11 @@ typedef struct Inode {
     struct Inode *next;
 } Inode;
 
+typedef struct Task {
+    char *path;
+    blkcnt_t sum;
+} Task;
+
 /**
  * struct System - Holds synchronization objects and shared program state.
  * @cond: Condition variable for worker synchronization.
@@ -59,12 +64,12 @@ int system_destroy(System *system);
 int system_join(System *system, pthread_t *threads, int n_threads);
 
 /**
- * system_enqueue - Thread-safe enqueue of a task string.
+ * system_enqueue - Enqueue of a task string.
  * @system: Pointer to System struct.
  * @task: Path to enqueue (malloc'ed string).
  *
  * Return: void.
  */
-void system_enqueue(System *system, void *task);
+void system_enqueue(System *system, Task *task);
 
 #endif

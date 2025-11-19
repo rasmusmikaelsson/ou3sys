@@ -3,6 +3,7 @@
 
 #include "system.h"
 
+
 /**
  * worker - Thread worker function.
  * @args: Pointer to System struct.
@@ -18,7 +19,7 @@ void *worker(void *args);
  *
  * Return: void.
  */
-void process_path(System *system, char *path);
+void process_path(System *system, Task *path);
 
 /**
  * process_directory - Reads directory entries and enqueues new tasks.
