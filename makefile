@@ -1,22 +1,23 @@
-cFlags = -g -std=gnu11 -Werror -Wall -Wextra -Wpedantic -Wmissing-declarations -Wmissing-prototypes -Wold-style-definition
-cc = gcc
+CC      = gcc
+CFLAGS  = -g -std=gnu11 -Werror -Wall -Wextra -Wpedantic \
+          -Wmissing-declarations -Wmissing-prototypes -Wold-style-definition
 
-.PHONY: all
+OBJ     = mdu.o worker.o system.o queue.o
+
+.PHONY: all clean
 all: mdu
 
-mdu: mdu.o file.o queue.o
-	$(cc) $(cFlags) -o mdu mdu.o file.o queue.o
+mdu: $(OBJ)
+	$(CC) $(CFLAGS) -o mdu $(OBJ)
 
-mdu.o: mdu.c file.h queue.h
-	$(cc) $(cFlags) -c mdu.c
+worker.o: worker.c worker.h system.h queue.h
+	$(CC) $(CFLAGS) -c worker.c
 
-file.o: file.c
-	$(cc) $(cFlags) -c file.c
+system.o: system.c system.h queue.h worker.h
+	$(CC) $(CFLAGS) -c system.c
 
-queue.o: queue.c
-	$(cc) $(cflags) -c queue.c
+queue.o: queue.c queue.h
+	$(CC) $(CFLAGS) -c queue.c
 
-.PHONY: clean
 clean:
-	@rm -f mdu
-
+	rm -f mdu $(OBJ)

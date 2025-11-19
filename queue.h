@@ -10,7 +10,7 @@ typedef struct Queue Queue;
  *
  * @return		Created, empty queue
  */
-Queue *create_queue();
+Queue *create_queue(void);
 
 /**
  * Gets the size of a given queue
