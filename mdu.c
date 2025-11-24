@@ -45,15 +45,34 @@ int main(int argc, char **argv)
 		sums[i] = 0;
 	}
 
-    /* Enqueue all start paths */
+	/* Enqueue all start paths */
 	for (int i = optind; i < argc; i++) {
+
+		/* Create the new task */
 		Task *task = malloc(sizeof(Task));
+		if (!task) {
+			perror("malloc Task");
+			system_destroy(&system);
+			exit(EXIT_FAILURE);
+		}
+
+		/* Create a valid path */
 		task->path = malloc(PATH_MAX);
+		if (!task->path) {
+			perror("malloc path");
+			free(task);
+			system_destroy(&system );
+			exit(EXIT_FAILURE);
+		}
+
 		snprintf(task->path, PATH_MAX, "%s", argv[i]);
 		task->sum = &sums[i - optind];
-		if(system_enqueue(&system, task) != 0) {
+
+		if (system_enqueue(&system, task) != 0) {
+			free(task->path);
+			free(task);
+			system_destroy(&system);
 			exit(EXIT_FAILURE);
-			return -1;
 		}
 	}
 
