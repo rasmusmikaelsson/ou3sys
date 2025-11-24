@@ -16,7 +16,11 @@
 #include <linux/limits.h>
 #include "system.h"
 
+/* ------------------ Declarations of internal functions ------------------ */
+
 static int parse_commandline(int argc, char **argv);
+
+/* -------------------------- External functions -------------------------- */
 
 int main(int argc, char **argv)
 {
@@ -90,6 +94,8 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+/* -------------------------- Internal functions -------------------------- */
 
 /**
  * parse_commandline - Parses -j flag and returns number of threads.
