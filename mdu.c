@@ -26,8 +26,9 @@ int main(int argc, char **argv)
     }
 
     int n_threads = parse_commandline(argc, argv);
-    if (n_threads < 0)
+    if (n_threads < 0) {
         exit(EXIT_FAILURE);
+	}
 
     pthread_t threads[n_threads];
     System system;
