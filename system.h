@@ -1,3 +1,13 @@
+/**
+ * system.h - Header for system management in multithreaded file block counting.
+ *
+ * Defines the System struct, Task struct, and related functions
+ * for thread synchronization, task queue management, and inode tracking.
+ * 
+ * Author: Rasmus Mikaelsson (et24rmn)
+ * Version: 13-11-2025
+ */
+
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
@@ -13,7 +23,7 @@ typedef struct Inode {
 
 typedef struct Task {
     char *path;
-    blkcnt_t sum;
+    blkcnt_t *sum;
 } Task;
 
 /**
@@ -36,40 +46,45 @@ typedef struct System {
 } System;
 
 /**
- * system_init - Initialize the System structure and start worker threads.
- * @system: Pointer to System struct.
- * @threads: Pointer to allocated pthread_t array.
- * @n_threads: Number of threads to create.
+ * Enqueue's a new task
  *
- * Return: 0 on success, -1 on error.
+ * @system: Pointer to System struct
+ * @task: Task to enqueue
+ *
+ * Returns: 0 on success, -1 on failure
  */
-int system_init(System *system, pthread_t *threads, int n_threads);
+int system_enqueue(System *system, Task *task);
 
 /**
- * system_destroy - Clean up allocated resources inside System.
- * @system: Pointer to System struct.
+ * Mark threads as done and joins them
  *
- * Return: 0 on success.
- */
-int system_destroy(System *system);
-
-/**
- * system_join - Marks thread work as finished and joins all workers.
- * @system: Pointer to System struct.
- * @threads: Pointer to thread array.
- * @n_threads: Number of threads.
+ * @system: Pointer to System struct
+ * @threads: Thread array
+ * @n_threads: Number of threads
  *
- * Return: 0 on success.
+ * Returns: 0 on success, -1 of failure
  */
 int system_join(System *system, pthread_t *threads, int n_threads);
 
 /**
- * system_enqueue - Enqueue of a task string.
- * @system: Pointer to System struct.
- * @task: Path to enqueue (malloc'ed string).
+ * Initialize System struct and create worker threads
  *
- * Return: void.
+ * @system: Pointer to System
+ * @threads: Pre-allocated array of pthread_t
+ * @n_threads: Number of threads
+ *
+ * Returns: 0 on success, -1 on failure
  */
-void system_enqueue(System *system, Task *task);
+int system_init(System *system, pthread_t *threads, int n_threads);
+
+/**
+ * Frees dynamically allocated fields inside System
+ *
+ * @system: Pointer to System struct
+ *
+ * Returns: 0 on success, -1 on failure
+ */
+int system_destroy(System *system);
 
 #endif
+

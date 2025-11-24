@@ -1,3 +1,15 @@
+/**
+ * main.c - Multithreaded file block counting program.
+ *
+ * This program counts blocks in files using multiple threads.
+ * It parses command-line arguments, initializes the system,
+ * enqueues tasks for threads, waits for completion, prints results,
+ * and cleans up allocated memory.
+ * 
+ * Author: Rasmus Mikaelsson (et24rmn)
+ * version: 13-11-2025
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,20 +38,32 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+	/* Initialize sums for each file */
+	int file_count = argc - optind;
+	blkcnt_t sums[file_count];
+	for(int i = 0; i < file_count; i++) {
+		sums[i] = 0;
+	}
+
     /* Enqueue all start paths */
 	for (int i = optind; i < argc; i++) {
 		Task *task = malloc(sizeof(Task));
 		task->path = malloc(PATH_MAX);
 		snprintf(task->path, PATH_MAX, "%s", argv[i]);
-		task->sum = 0;
-		system_enqueue(&system, task);
+		task->sum = &sums[i - optind];
+		if(system_enqueue(&system, task) != 0) {
+			exit(EXIT_FAILURE);
+			return -1;
+		}
 	}
 
     /* Wait for threads */
     system_join(&system, threads, n_threads);
 
-    /* Print total */
-    printf("Total size: %ld\n", *system.sum);
+    /* Print total :) */
+	for(int i = 0; i < file_count; i++) {
+		printf("%-8ld %s\n", sums[i], argv[i + optind]);
+	}
 
     /* Free memory */
     system_destroy(&system);

@@ -57,7 +57,7 @@ int enqueue(Queue *q, void *value) {
 	}
 
 	q->size++;
-	return 1;
+	return 0;
 }
 
 void *dequeue(Queue *q) {
