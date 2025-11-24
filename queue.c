@@ -15,6 +15,10 @@ struct Queue{
 
 Queue *create_queue(void) {
 	Queue *q = malloc(sizeof(Queue));
+	if(!q) {
+		perror("malloc queue creation");
+		return NULL;
+	}
 	q->head = NULL;
 	q->tail = NULL;
 	q->size = 0;
@@ -23,22 +27,24 @@ Queue *create_queue(void) {
 }
 
 int size(Queue *q) {
+	if(!q) return 0;
 	return q->size;
 }
 
 bool is_empty(Queue *q) {
-	return (q->size == 0);
+	if(!q) return true;
+	return q->size == 0;
 }
 
 void *peek(Queue *q) {
-	if(is_empty(q)) {
+	if(!q || is_empty(q))
 		return NULL;
-	}
-	
 	return q->head->value;
 }
 
 int enqueue(Queue *q, void *value) {
+	if(!q) return -1;
+
 	Node *new_node = malloc(sizeof(Node));
 	if(new_node == NULL) {
 		perror("malloc");
@@ -61,12 +67,12 @@ int enqueue(Queue *q, void *value) {
 }
 
 void *dequeue(Queue *q) {
-	if(is_empty(q)) {
+	if(!q || is_empty(q)) {
 		return NULL;
 	}
 
-	void *value = q->head->value;
 	Node *old_head = q->head;
+	void *value = old_head->value;
 
 	// If last element, reset the queue
 	if(q->size == 1) {
@@ -82,6 +88,8 @@ void *dequeue(Queue *q) {
 }
 
 void free_queue(Queue *q) {
+	if(!q) return;
+	
     Node *current_node = q->head;
     while (current_node != NULL) {
         Node *temp = current_node;

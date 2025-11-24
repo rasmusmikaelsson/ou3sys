@@ -19,6 +19,9 @@
 /* ------------------ Declarations of internal functions ------------------ */
 
 static int parse_commandline(int argc, char **argv);
+static blkcnt_t *init_sums(int file_count);
+static int process_files(System *system, char **argv, int argc, int optind, pthread_t *threads, int n_threads);
+static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkcnt_t *sums);
 
 /* -------------------------- External functions -------------------------- */
 
@@ -43,56 +46,16 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-	/* Initialize sums for each file */
-	int file_count = argc - optind;
-	blkcnt_t sums[file_count];
-	for(int i = 0; i < file_count; i++) {
-		sums[i] = 0;
-	}
-
-	/* Enqueue all start paths */
-	for (int i = optind; i < argc; i++) {
-
-		/* Create the new task */
-		Task *task = malloc(sizeof(Task));
-		if (!task) {
-			perror("malloc Task");
-			system_destroy(&system);
-			exit(EXIT_FAILURE);
-		}
-
-		/* Create a valid path */
-		task->path = malloc(PATH_MAX);
-		if (!task->path) {
-			perror("malloc path");
-			free(task);
-			system_destroy(&system );
-			exit(EXIT_FAILURE);
-		}
-
-		snprintf(task->path, PATH_MAX, "%s", argv[i]);
-		task->sum = &sums[i - optind];
-
-		if (system_enqueue(&system, task) != 0) {
-			free(task->path);
-			free(task);
-			system_destroy(&system);
-			exit(EXIT_FAILURE);
-		}
-	}
-
-    /* Wait for threads */
-    system_join(&system, threads, n_threads);
-
-    /* Print total :) */
-	for(int i = 0; i < file_count; i++) {
-		printf("%-8ld %s\n", sums[i], argv[i + optind]);
-	}
+	if (process_files(&system, argv, argc, optind, threads, n_threads) != 0) {
+        system_destroy(&system);
+        exit(EXIT_FAILURE);
+    }
 
     /* Free memory */
     system_destroy(&system);
 
     return 0;
+
 }
 
 /* -------------------------- Internal functions -------------------------- */
@@ -123,3 +86,58 @@ static int parse_commandline(int argc, char **argv)
 
     return n_threads;
 }
+
+static blkcnt_t *init_sums(int file_count) {
+    blkcnt_t *sums = calloc(file_count, sizeof(blkcnt_t));
+    if (!sums) {
+        perror("calloc sums");
+        return NULL;
+    }
+    return sums;
+}
+
+static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkcnt_t *sums)
+{
+    for (int i = optind; i < argc; i++) {
+        Task *task = malloc(sizeof(Task));
+        if (!task)
+            return -1;
+
+        task->path = malloc(PATH_MAX);
+        if (!task->path) {
+            free(task);
+            return -1;
+        }
+
+        snprintf(task->path, PATH_MAX, "%s", argv[i]);
+        task->sum = &sums[i - optind];
+
+        if (system_enqueue(system, task) != 0) {
+            free(task->path);
+            free(task);
+            return -1;
+        }
+    }
+    return 0;
+}
+
+static int process_files(System *system, char **argv, int argc, int optind, pthread_t *threads, int n_threads) {
+    int file_count = argc - optind;
+    blkcnt_t *sums = init_sums(file_count);
+    if (!sums)
+        return -1;
+
+    if (enqueue_tasks(system, argv, argc, optind, sums) != 0) {
+        free(sums);
+        return -1;
+    }
+
+    system_join(system, threads, n_threads);
+
+    for (int i = 0; i < file_count; i++)
+        printf("%-8ld %s\n", sums[i], argv[i + optind]);
+
+    free(sums);
+    return 0;
+}
+

@@ -125,10 +125,18 @@ int system_init(System *system, pthread_t *threads, int n_threads)
 
 	/* Initialization of condition varible and mutex lock */
 	if(init_cond(cond) != 0) {
+        free(cond);
+		free(lock);
+		free(done);
+        free(sum);
 		return -1;
 	}
 
 	if(init_mutex(lock) != 0) {
+        free(cond);
+		free(lock);
+		free(done);
+        free(sum);
 		return -1;
 	}
 
@@ -139,9 +147,20 @@ int system_init(System *system, pthread_t *threads, int n_threads)
     system->lock = lock;
     system->done = done;
     system->queue = create_queue();
+    if(!system->queue) {
+        free(cond);
+		free(lock);
+		free(done);
+        free(sum);
+        return -1;
+    }
     system->sum = sum;
 
 	if(init_mutex(&system->inode_lock) != 0) {
+        free(cond);
+		free(lock);
+		free(done);
+        free(sum);
 		return -1;
 	}
 
