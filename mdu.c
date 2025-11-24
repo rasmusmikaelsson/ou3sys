@@ -124,9 +124,10 @@ static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkc
 static int process_files(System *system, char **argv, int argc, int optind, pthread_t *threads, int n_threads) {
     int file_count = argc - optind;
     blkcnt_t *sums = init_sums(file_count);
-    if (!sums)
+    if (!sums) {
         return -1;
-
+	}
+	
     if (enqueue_tasks(system, argv, argc, optind, sums) != 0) {
         free(sums);
         return -1;
@@ -134,9 +135,10 @@ static int process_files(System *system, char **argv, int argc, int optind, pthr
 
     system_join(system, threads, n_threads);
 
-    for (int i = 0; i < file_count; i++)
+    for (int i = 0; i < file_count; i++){
         printf("%-8ld %s\n", sums[i], argv[i + optind]);
-
+	}
+	
     free(sums);
     return 0;
 }
