@@ -24,7 +24,7 @@ static int unlock_mutex(pthread_mutex_t *m);
 static int lock_mutex(pthread_mutex_t *m);
 static int signal_cond(pthread_cond_t *cond);
 static int broadcast_cond(pthread_cond_t *cond);
-static int join_thread(pthread_t thread);
+static int join_thread(pthread_t thread, int *status);
 static int init_cond(pthread_cond_t *cond);
 static int init_mutex(pthread_mutex_t *lock);
 static int destroy_cond(pthread_cond_t *cond);
@@ -301,9 +301,11 @@ static int join_thread(pthread_t thread, int *status) {
         return -1;
     }
 
-    if(worker_status != NULL && *(int*)worker_status == -1) {
-        return -1;
+    if(worker_status != NULL) {
+        *status = *(int*)worker_status;
+        free(worker_status);
     }
+
     return 0;
 }
 

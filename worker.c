@@ -85,6 +85,8 @@ static int *fail_code(void) {
 void *worker(void *args) {
     System *system = (System *)args;
 
+    int status = 0;
+
     /* Wait until queue has tasks or system is done */
     while (1) {
         pthread_mutex_lock(system->lock);
@@ -95,7 +97,7 @@ void *worker(void *args) {
         /* Exit if done and queue is empty */
         if (*(system->done) == 1 && is_empty(system->queue)) {
             pthread_mutex_unlock(system->lock);
-            return NULL;
+            return status == 0 ? NULL : fail_code();
         }
 
         Task *task = dequeue(system->queue);
@@ -103,16 +105,15 @@ void *worker(void *args) {
 
         /* Process task: sum file blocks or enqueue directories */
         if(process_path(system, task) != 0) {
-            free(task->path);
-            free(task);
-
-            return fail_code();
+            status = -1;
         }
 
         /* Free task memory */
         free(task->path);
         free(task);
     }
+
+
 }
 
 /**

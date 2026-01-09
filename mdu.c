@@ -54,10 +54,7 @@ int main(int argc, char **argv)
     /* Free memory */
     system_destroy(&system);
 
-	//TODO: if no critical error, exit with exitcode 0.
-	//Otherwise return -1
-	
-    return 0;
+    return system.status;
 
 }
 
