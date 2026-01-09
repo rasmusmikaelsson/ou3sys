@@ -22,6 +22,7 @@
 #include "queue.h"
 
 static bool inode_seen(System *sys, dev_t st_dev, ino_t st_ino);
+static int *fail_code(void);
 
 /**
  * process_path - Handles path: adds file blocks or explores directory.
@@ -67,6 +68,12 @@ int process_path(System *system, Task *task) {
 	return 0;
 }
 
+static int *fail_code(void) {
+    int *failed = malloc(sizeof(int));
+    *failed = -1;
+
+    return failed;
+}
 
 /**
  * worker - Worker thread loop for processing tasks.
@@ -95,7 +102,12 @@ void *worker(void *args) {
         pthread_mutex_unlock(system->lock);
 
         /* Process task: sum file blocks or enqueue directories */
-        process_path(system, task);
+        if(process_path(system, task) != 0) {
+            free(task->path);
+            free(task);
+
+            return fail_code();
+        }
 
         /* Free task memory */
         free(task->path);
@@ -135,4 +147,6 @@ static bool inode_seen(System *sys, dev_t st_dev, ino_t st_ino)
     pthread_mutex_unlock(&sys->inode_lock);
     return false;
 }
+
+
 

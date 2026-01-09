@@ -40,6 +40,7 @@ typedef struct System {
     int *done;
     Queue *queue;
     blkcnt_t *sum;
+	int status;
 
     pthread_mutex_t inode_lock;
     Inode *seen_inodes;

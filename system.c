@@ -81,7 +81,7 @@ int system_join(System *system, pthread_t *threads, int n_threads)
 
 	/* Join threads */
     for (int i = 0; i < n_threads; i++) {
-        if(join_thread(threads[i]) != 0) {
+        if(join_thread(threads[i], &system->status) != 0) {
 			return -1;
 		}
     }
@@ -146,6 +146,7 @@ int system_init(System *system, pthread_t *threads, int n_threads)
     system->cond = cond;
     system->lock = lock;
     system->done = done;
+	system->status = 0;
     system->queue = create_queue();
     if(!system->queue) {
         free(cond);
@@ -292,10 +293,15 @@ static int broadcast_cond(pthread_cond_t *cond) {
  *
  * Return: 0 on success, -1 on failure.
  */
-static int join_thread(pthread_t thread) {
-    int ret = pthread_join(thread, NULL);
+static int join_thread(pthread_t thread, int *status) {
+    void *worker_status;
+    int ret = pthread_join(thread, &worker_status);
     if (ret != 0) {
         fprintf(stderr, "pthread_join failed: %s\n", strerror(ret));
+        return -1;
+    }
+
+    if(worker_status != NULL && *(int*)worker_status == -1) {
         return -1;
     }
     return 0;
