@@ -21,7 +21,6 @@
 #include "system.h"
 #include "queue.h"
 
-static bool inode_seen(System *sys, dev_t st_dev, ino_t st_ino);
 static int *fail_code(void);
 
 /**
@@ -40,10 +39,7 @@ int process_path(System *system, Task *task) {
 
     //* Check if inode has already been counted */
     pthread_mutex_lock(system->lock);
-    if (!inode_seen(system, sb.st_dev, sb.st_ino)) {
-        *(task->sum) += sb.st_blocks;
-        // printf("Size: %ld, Total size: %ld\n", sb.st_blocks, *task->sum);
-    }
+    *(task->sum) += sb.st_blocks;
     pthread_mutex_unlock(system->lock);
 
     /* If path is a directory, enqueue child tasks */
@@ -67,7 +63,6 @@ int process_path(System *system, Task *task) {
         }
         closedir(dir);
     }
-
 	return 0;
 }
 
@@ -118,39 +113,3 @@ void *worker(void *args) {
 
 
 }
-
-/**
- * inode_seen - Checks if an inode has already been processed.
- * @sys: Pointer to System struct.
- * @st_dev: Device ID of the file.
- * @st_ino: Inode number of the file.
- *
- * Return: true if inode was already seen, false otherwise.
- * Adds inode to the seen list if not already present.
- */
-static bool inode_seen(System *sys, dev_t st_dev, ino_t st_ino)
-{
-    pthread_mutex_lock(&sys->inode_lock);
-
-    Inode *current = sys->seen_inodes;
-    while(current != NULL) {
-        if(current->st_dev == st_dev && current->st_ino == st_ino) {
-            pthread_mutex_unlock(&sys->inode_lock);
-            return true;
-        }
-        current = current->next;
-    }
-
-    /* Add new inode to the seen list */
-    Inode *node = malloc(sizeof(Inode));
-    node->st_dev = st_dev;
-    node->st_ino = st_ino;
-    node->next = sys->seen_inodes;
-    sys->seen_inodes = node;
-
-    pthread_mutex_unlock(&sys->inode_lock);
-    return false;
-}
-
-
-
