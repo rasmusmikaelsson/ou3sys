@@ -28,6 +28,8 @@ static int *fail_code(void);
  * process_path - Handles path: adds file blocks or explores directory.
  * @system: Pointer to System struct.
  * @path: Path to process.
+ * 
+ * @return 0 on success, otherwise -1
  */
 int process_path(System *system, Task *task) {
     struct stat sb;
@@ -37,11 +39,12 @@ int process_path(System *system, Task *task) {
     }
 
     //* Check if inode has already been counted */
+    pthread_mutex_lock(system->lock);
     if (!inode_seen(system, sb.st_dev, sb.st_ino)) {
-        pthread_mutex_lock(system->lock);
         *(task->sum) += sb.st_blocks;
-        pthread_mutex_unlock(system->lock);
+        // printf("Size: %ld, Total size: %ld\n", sb.st_blocks, *task->sum);
     }
+    pthread_mutex_unlock(system->lock);
 
     /* If path is a directory, enqueue child tasks */
     if (S_ISDIR(sb.st_mode)) {
