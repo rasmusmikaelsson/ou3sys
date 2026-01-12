@@ -172,24 +172,6 @@ int system_init(System *system, pthread_t *threads, int n_threads)
 
 int system_destroy(System *system)
 {
-	if(lock_mutex(&system->inode_lock) != 0) {
-		return -1;
-	}
-
-    /* Free linked list of seen inodes */
-    Inode *current = system->seen_inodes;
-    while (current) {
-        Inode *tmp = current;
-        current = current->next;
-        free(tmp);
-    }
-
-    system->seen_inodes = NULL;
-
-	if(unlock_mutex(&system->inode_lock) != 0) {
-		return -1;
-	}
-
     free_queue(system->queue);
 
     /* Destroy mutexes and condition variable */
@@ -290,6 +272,10 @@ static int join_thread(pthread_t thread, int *status) {
     if(worker_status != NULL) {
         *status = *(int*)worker_status;
         free(worker_status);
+
+        if(*status == -2) {
+            return -1;
+        }
     }
 
     return 0;
