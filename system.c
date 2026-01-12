@@ -6,6 +6,7 @@
  * 
  * Author: Rasmus Mikaelsson (et24rmn)
  * Version: 13-11-2025
+ *          12-01-2026 (Current)
  */
 
 #include <stdio.h>
@@ -53,12 +54,12 @@ int system_enqueue(System *system, Task *task)
 		return -1;
 	}
 
-	// Unlock mutex
+	/* Unlock mutex */
     if(unlock_mutex(system->lock) != 0) {
 		return -1;
 	}
 
-	// Return success
+	/* Return success */
 	return 0;
 }
 
@@ -157,16 +158,6 @@ int system_init(System *system, pthread_t *threads, int n_threads)
     }
     system->sum = sum;
 
-	if(init_mutex(&system->inode_lock) != 0) {
-        free(cond);
-		free(lock);
-		free(done);
-        free(sum);
-		return -1;
-	}
-
-    system->seen_inodes = NULL;
-
     /* Create worker threads */
     for (int i = 0; i < n_threads; i++) {
         if (pthread_create(&threads[i], NULL, worker, system) != 0) {
@@ -224,7 +215,6 @@ int system_destroy(System *system)
 
 /**
  * Unlocks the mutex
- *
  * @m: Pointer to the mutex to unlock
  *
  * Returns: 0 on success, -1 on failure
@@ -240,7 +230,6 @@ static int unlock_mutex(pthread_mutex_t *m) {
 
 /**
  * Locks the mutex
- * 
  * @m: Pointer to the mutext to lock
  * 
  * Returns: 0 on success, -1 on failure
@@ -256,7 +245,6 @@ static int lock_mutex(pthread_mutex_t *m) {
 
 /**
  * Signals one thread waiting on a condition variable.
- *
  * @cond: Pointer to the condition variable to signal.
  *
  * Return: 0 on success, -1 on failure.
@@ -272,7 +260,6 @@ static int signal_cond(pthread_cond_t *cond) {
 
 /**
  * broadcast_cond - Wakes up all threads waiting on a condition variable.
- *
  * @cond: Pointer to the condition variable to broadcast.
  *
  * Return: 0 on success, -1 on failure.
@@ -288,7 +275,6 @@ static int broadcast_cond(pthread_cond_t *cond) {
 
 /**
  * Waits for a thread to finish execution.
- *
  * @thread: Thread identifier to join.
  *
  * Return: 0 on success, -1 on failure.
@@ -368,4 +354,3 @@ static int destroy_mutex(pthread_mutex_t *lock) {
     }
     return 0;
 }
-

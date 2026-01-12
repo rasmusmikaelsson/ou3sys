@@ -7,6 +7,7 @@
  * 
  * Author: Rasmus Mikaelsson (et24rmn)
  * Version: 13-11-2025
+ *          12-01-2026 (Current)
  */
 
 #include <stdio.h>
@@ -21,15 +22,14 @@
 #include "system.h"
 #include "queue.h"
 
-static int *fail_code(void);
+/* ------------------ Declarations of internal functions ------------------ */
 
-/**
- * process_path - Handles path: adds file blocks or explores directory.
- * @system: Pointer to System struct.
- * @path: Path to process.
- * 
- * @return 0 on success, otherwise -1
- */
+static int *fail_code(void);
+static int unlock_mutex(pthread_mutex_t *m);
+static int lock_mutex(pthread_mutex_t *m);
+
+/* -------------------------- External functions -------------------------- */
+
 int process_path(System *system, Task *task) {
     struct stat sb;
     if (lstat(task->path, &sb) == -1) {
@@ -37,10 +37,18 @@ int process_path(System *system, Task *task) {
         return -1;
     }
 
-    //* Check if inode has already been counted */
-    pthread_mutex_lock(system->lock);
+    /* Lock mutex */
+	if(lock_mutex(system->lock) != 0) {
+		return -1;
+	}
+
+    /* Update sum */
     *(task->sum) += sb.st_blocks;
-    pthread_mutex_unlock(system->lock);
+	
+    /* Unlock mutex */
+    if(unlock_mutex(system->lock) != 0) {
+		return -1;
+	}
 
     /* If path is a directory, enqueue child tasks */
     if (S_ISDIR(sb.st_mode)) {
@@ -52,34 +60,32 @@ int process_path(System *system, Task *task) {
 
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
                 continue;
+            }
 
             Task *child_task = malloc(sizeof(Task));
             child_task->path = malloc(PATH_MAX);
+            if(!child_task || !child_task) {
+                perror("malloc");
+                free(child_task);
+                return -1;
+            }
+
 			child_task->sum = task->sum;
             snprintf(child_task->path, PATH_MAX, "%s/%s", task->path, entry->d_name);
-            system_enqueue(system, child_task);
+            if(system_enqueue(system, child_task) != 0) {
+                free(child_task->path);
+                free(child_task);
+                closedir(dir);
+                return -1;
+            }
         }
         closedir(dir);
     }
 	return 0;
 }
 
-static int *fail_code(void) {
-    int *failed = malloc(sizeof(int));
-    *failed = -1;
-
-    return failed;
-}
-
-/**
- * worker - Worker thread loop for processing tasks.
- * @args: Pointer to System struct.
- *
- * Dequeues tasks from the system queue, processes paths, and frees task memory.
- * Terminates when the queue is empty and the system is marked done.
- */
 void *worker(void *args) {
     System *system = (System *)args;
 
@@ -110,6 +116,45 @@ void *worker(void *args) {
         free(task->path);
         free(task);
     }
+}
 
+/* -------------------------- Internal functions -------------------------- */
 
+static int *fail_code(void) {
+    int *failed = malloc(sizeof(int));
+    *failed = -1;
+
+    return failed;
+}
+
+/**
+ * Unlocks the mutex
+ *
+ * @m: Pointer to the mutex to unlock
+ *
+ * Returns: 0 on success, -1 on failure
+ */
+static int unlock_mutex(pthread_mutex_t *m) {
+    int ret = pthread_mutex_unlock(m);
+    if (ret != 0) {
+        fprintf(stderr, "pthread_mutex_unlock failed: %s\n", strerror(ret));
+        return -1;
+    }
+    return 0;
+}
+
+/**
+ * Locks the mutex
+ * 
+ * @m: Pointer to the mutext to lock
+ * 
+ * Returns: 0 on success, -1 on failure
+ */
+static int lock_mutex(pthread_mutex_t *m) {
+    int ret = pthread_mutex_lock(m);
+    if(ret != 0) {
+        fprintf(stderr, "pthread_mutext_lock failed: %s\n", strerror(ret));
+        return -1;
+    }
+    return 0;
 }

@@ -41,51 +41,43 @@ typedef struct System {
     Queue *queue;
     blkcnt_t *sum;
 	int status;
-
-    pthread_mutex_t inode_lock;
-    Inode *seen_inodes;
 } System;
 
 /**
- * Enqueue's a new task
+ * system_enqueue - Enqueues a task and signals a waiting worker thread.
+ * @system: Pointer to the system structure.
+ * @task: Pointer to the task to enqueue.
  *
- * @system: Pointer to System struct
- * @task: Task to enqueue
- *
- * Returns: 0 on success, -1 on failure
+ * Return: 0 on success, -1 on failure.
  */
 int system_enqueue(System *system, Task *task);
 
 /**
- * Mark threads as done and joins them
+ * system_join - Signals worker threads to terminate and joins them.
+ * @system: Pointer to the system structure.
+ * @threads: Array of worker thread identifiers.
+ * @n_threads: Number of worker threads.
  *
- * @system: Pointer to System struct
- * @threads: Thread array
- * @n_threads: Number of threads
- *
- * Returns: 0 on success, -1 of failure
+ * Return: 0 on success, -1 on failure.
  */
 int system_join(System *system, pthread_t *threads, int n_threads);
 
 /**
- * Initialize System struct and create worker threads
+ * system_init - Initializes system resources and creates worker threads.
+ * @system: Pointer to the system structure to initialize.
+ * @threads: Array to store created worker thread identifiers.
+ * @n_threads: Number of worker threads to create.
  *
- * @system: Pointer to System
- * @threads: Pre-allocated array of pthread_t
- * @n_threads: Number of threads
- *
- * Returns: 0 on success, -1 on failure
+ * Return: 0 on success, -1 on failure.
  */
 int system_init(System *system, pthread_t *threads, int n_threads);
 
 /**
- * Frees dynamically allocated fields inside System
+ * system_destroy - Frees all system resources and destroys synchronization primitives.
+ * @system: Pointer to the system structure to destroy.
  *
- * @system: Pointer to System struct
- *
- * Returns: 0 on success, -1 on failure
+ * Return: 0 on success, -1 on failure.
  */
 int system_destroy(System *system);
 
 #endif
-

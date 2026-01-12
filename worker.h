@@ -4,6 +4,7 @@
  * 
  * Author: Rasmus Mikaelsson (et24rmn)
  * Version: 13-11-2025
+ *          12-01-2026 (Current)
  */
 
 #ifndef WORKER_H
@@ -11,22 +12,21 @@
 
 #include "system.h"
 
-
 /**
- * worker - Worker thread function.
- * @args: Pointer to System struct.
- *
- * Return: NULL.
- */
-void *worker(void *args);
-
-/**
- * process_path - Handles a file or directory task.
+ * process_path - Handles path: adds file blocks or explores directory.
  * @system: Pointer to System struct.
- * @task: Task containing path and sum pointer.
- *
- * Return: void.
+ * @path: Path to process.
+ * 
+ * @return 0 on success, otherwise -1
  */
 int process_path(System *system, Task *path);
+
+/**
+ * worker - Worker thread routine that processes queued tasks until termination.
+ * @args: Pointer to the system structure.
+ *
+ * Return: Thread exit status.
+ */
+void *worker(void *args);
 
 #endif
