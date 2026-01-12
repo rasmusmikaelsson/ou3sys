@@ -2,7 +2,7 @@
  * system.h - Header for system management in multithreaded file block counting.
  *
  * Defines the System struct, Task struct, and related functions
- * for thread synchronization, task queue management, and inode tracking.
+ * for thread synchronization, and task queue management.
  * 
  * Author: Rasmus Mikaelsson (et24rmn)
  * Version: 13-11-2025
@@ -14,12 +14,6 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include "queue.h"
-
-typedef struct Inode {
-    dev_t st_dev;
-    ino_t st_ino;
-    struct Inode *next;
-} Inode;
 
 typedef struct Task {
     char *path;

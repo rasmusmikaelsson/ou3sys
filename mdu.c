@@ -8,6 +8,7 @@
  * 
  * Author: Rasmus Mikaelsson (et24rmn)
  * version: 13-11-2025
+ *          12-01-2026 (Current)
  */
 
 #include <stdio.h>
@@ -87,6 +88,12 @@ static int parse_commandline(int argc, char **argv)
     return n_threads;
 }
 
+/**
+ * init_sums - Allocates and initializes an array for block count results.
+ * @file_count: Number of files to allocate storage for.
+ *
+ * Returns: Pointer to initialized block count array, or NULL on failure.
+ */
 static blkcnt_t *init_sums(int file_count) {
     blkcnt_t *sums = calloc(file_count, sizeof(blkcnt_t));
     if (!sums) {
@@ -96,6 +103,16 @@ static blkcnt_t *init_sums(int file_count) {
     return sums;
 }
 
+/**
+ * enqueue_tasks - Creates and enqueues initial tasks for all input paths.
+ * @system: Pointer to the system structure.
+ * @argv: Command-line argument vector.
+ * @argc: Argument count.
+ * @optind: Index of first non-option argument.
+ * @sums: Array for storing block count results.
+ *
+ * Returns: 0 on success, -1 on failure.
+ */
 static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkcnt_t *sums)
 {
     for (int i = optind; i < argc; i++) {
@@ -121,6 +138,17 @@ static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkc
     return 0;
 }
 
+/**
+ * process_files - Processes all input paths and prints block usage results.
+ * @system: Pointer to the system structure.
+ * @argv: Command-line argument vector.
+ * @argc: Argument count.
+ * @optind: Index of first non-option argument.
+ * @threads: Array of worker thread identifiers.
+ * @n_threads: Number of worker threads.
+ *
+ * Returns: 0 on success, -1 on failure.
+ */
 static int process_files(System *system, char **argv, int argc, int optind, pthread_t *threads, int n_threads) {
     int file_count = argc - optind;
     blkcnt_t *sums = init_sums(file_count);
@@ -142,4 +170,3 @@ static int process_files(System *system, char **argv, int argc, int optind, pthr
     free(sums);
     return 0;
 }
-

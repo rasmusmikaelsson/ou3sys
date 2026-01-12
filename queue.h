@@ -1,3 +1,14 @@
+/**
+ * queue.h - Generic FIFO queue implementation.
+ *
+ * Provides a dynamically allocated first-in-first-out queue with basic
+ * operations for enqueueing, dequeueing, and inspecting elements.
+ * The queue stores generic pointers and does not manage element memory.
+ *
+ * Author: Rasmus Mikaelsson (et24rmn)
+ * Version: 13-11-2025
+ */
+
 #ifndef QUEUE_H
 #define QUEUE_H
 
