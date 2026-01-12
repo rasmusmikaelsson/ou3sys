@@ -1,9 +1,9 @@
 /**
- * worker.c - Implements worker threads for processing file system tasks.
+ * worker.c - Worker thread logic for multithreaded file block counting.
  *
- * This file defines the worker thread loop and path processing functions.
- * It handles files and directories, sums file blocks, and avoids double-counting
- * inodes using a seen-inode list.
+ * Contains the worker thread routine and helper functions for processing
+ * filesystem paths, handling task execution, and reporting thread failure
+ * states in a thread-safe manner.
  * 
  * Author: Rasmus Mikaelsson (et24rmn)
  * Version: 13-11-2025
@@ -130,16 +130,26 @@ void *worker(void *args) {
 
 /* -------------------------- Internal functions -------------------------- */
 
+/**
+ * fail_code - Allocates and returns a non-critical failure code.
+ *
+ * Returns: Pointer to an integer representing a recoverable thread failure.
+ */
 static int *fail_code(void) {
     int *failed = malloc(sizeof(int));
-    *failed = -1;
+    *failed = 1;
 
     return failed;
 }
 
+/**
+ * critcal_fail_code - Allocates and returns a critical failure code.
+ *
+ * Returns: Pointer to an integer representing a critical thread failure.
+ */
 static int *critcal_fail_code(void) {
     int *failed = malloc(sizeof(int));
-    *failed = -2;
+    *failed = 2;
 
     return failed;
 }
