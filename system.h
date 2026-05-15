@@ -16,7 +16,7 @@
 #include "queue.h"
 
 typedef struct Task {
-    char *path;
+    char path[PATH_MAX];
     blkcnt_t *sum;
 } Task;
 

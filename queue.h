@@ -57,11 +57,10 @@ void *peek(Queue *q);
 int enqueue(Queue *q, void *item);
 
 /**
- * Removes item first in line from queue.
+ * Removes item first in line from queue. Return task needs to be freed by user.
  *
  * @param q			Queue pointer
- * @param status	TODO
- * @return
+ * @return			Pointer to the removed element, or NULL if queue is empty
  */
 void *dequeue(Queue *q);
 

@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include "string.h"
 #include "system.h"
 
 /* ------------------ Declarations of internal functions ------------------ */
@@ -117,20 +118,15 @@ static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkc
 {
     for (int i = optind; i < argc; i++) {
         Task *task = malloc(sizeof(Task));
-        if (!task)
-            return -1;
-
-        task->path = malloc(PATH_MAX);
-        if (!task->path) {
-            free(task);
+        if (!task) {
+            perror("malloc task");
             return -1;
         }
 
-        snprintf(task->path, PATH_MAX, "%s", argv[i]);
+        strlcpy(task->path, argv[i], PATH_MAX);
         task->sum = &sums[i - optind];
 
         if (system_enqueue(system, task) != 0) {
-            free(task->path);
             free(task);
             return -1;
         }
@@ -163,8 +159,9 @@ static int process_files(System *system, char **argv, int argc, int optind, pthr
 
     system_join(system, threads, n_threads);
 
+    // +8 bc initial directory block not counted
     for (int i = 0; i < file_count; i++){
-        printf("%-8ld %s\n", sums[i], argv[i + optind]);
+        printf("%-8ld %s\n", sums[i] + 8, argv[i + optind]);
 	}
 	
     free(sums);

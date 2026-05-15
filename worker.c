@@ -22,6 +22,8 @@
 #include "system.h"
 #include "queue.h"
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 /* ------------------ Declarations of internal functions ------------------ */
 
 static int *fail_code(void);
@@ -33,58 +35,69 @@ static int wait_cond(pthread_cond_t *cond, pthread_mutex_t *lock);
 /* -------------------------- External functions -------------------------- */
 
 int process_path(System *system, Task *task) {
-    struct stat sb;
-    if (lstat(task->path, &sb) == -1) {
-        perror("lstat");
+    blkcnt_t size = 0;
+    char path[PATH_MAX];
+
+    DIR *dir = opendir(task->path);
+    if (!dir) {
+        perror("opendir");
         return -1;
     }
 
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        memcpy(path, task->path, strlen(task->path));
+        path[strlen(task->path)] = '/';
+        memcpy(path + strlen(task->path) + 1, entry->d_name, strlen(entry->d_name)+1);
+        struct stat sb;
+        if (lstat(path, &sb) == -1) {
+            perror("lstat");
+            if(closedir(dir) != 0) {
+                perror("closedir");
+            }
+            return -1;
+        }
+        size += sb.st_blocks;
+
+        if (S_ISDIR(sb.st_mode)) {
+            Task *child_task = malloc(sizeof(Task));
+            if(!child_task) {
+                perror("malloc");
+                return -1;
+            }
+
+            child_task->sum = task->sum;
+            strncpy(child_task->path, path, PATH_MAX);
+            if(system_enqueue(system, child_task) != 0) {
+                free(child_task);
+                if(closedir(dir) != 0) {
+                    perror("closedir");
+                }
+                return -1;
+            }
+        }
+
+    }
+    if(closedir(dir) != 0 ) {
+        perror("closedir");
+        return -1;
+    }
+    
     /* Lock mutex */
 	if(lock_mutex(system->lock) != 0) {
 		return -1;
 	}
 
     /* Update sum */
-    *(task->sum) += sb.st_blocks;
+    *(task->sum) += size;
 	
     /* Unlock mutex */
     if(unlock_mutex(system->lock) != 0) {
 		return -1;
 	}
-
-    /* If path is a directory, enqueue child tasks */
-    if (S_ISDIR(sb.st_mode)) {
-        DIR *dir = opendir(task->path);
-        if (!dir) {
-			perror("opendir");
-            return -1;
-        }
-
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != NULL) {
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-                continue;
-            }
-
-            Task *child_task = malloc(sizeof(Task));
-            child_task->path = malloc(PATH_MAX);
-            if(!child_task || !child_task) {
-                perror("malloc");
-                free(child_task);
-                return -1;
-            }
-
-			child_task->sum = task->sum;
-            snprintf(child_task->path, PATH_MAX, "%s/%s", task->path, entry->d_name);
-            if(system_enqueue(system, child_task) != 0) {
-                free(child_task->path);
-                free(child_task);
-                closedir(dir);
-                return -1;
-            }
-        }
-        closedir(dir);
-    }
 	return 0;
 }
 
@@ -123,7 +136,6 @@ void *worker(void *args) {
         }
 
         /* Free task memory */
-        free(task->path);
         free(task);
     }
 }
