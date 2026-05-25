@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <sys/stat.h>
 #include "string.h"
 #include "system.h"
 
@@ -130,8 +131,9 @@ static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkc
             free(task);
             continue;
         }
-        
-        task->sum = &sums[i - optind] + sb.st_blocks;
+
+        sums[i - optind] += sb.st_blocks;
+        task->sum = &sums[i - optind];
 
         if (system_enqueue(system, task) != 0) {
             free(task);
