@@ -124,7 +124,14 @@ static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkc
         }
 
         strncpy(task->path, argv[i], PATH_MAX);
-        task->sum = &sums[i - optind];
+        struct stat sb;
+        if (lstat(task->path, &sb) == -1) {
+            perror("lstat");
+            free(task);
+            continue;
+        }
+        
+        task->sum = &sums[i - optind] + sb.st_blocks;
 
         if (system_enqueue(system, task) != 0) {
             free(task);
@@ -159,9 +166,8 @@ static int process_files(System *system, char **argv, int argc, int optind, pthr
 
     system_join(system, threads, n_threads);
 
-    // +8 bc initial directory block not counted
     for (int i = 0; i < file_count; i++){
-        printf("%-8ld %s\n", sums[i] + 8, argv[i + optind]);
+        printf("%-8ld %s\n", sums[i], argv[i + optind]);
 	}
 	
     free(sums);
