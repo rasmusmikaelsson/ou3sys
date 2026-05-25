@@ -123,7 +123,7 @@ static int enqueue_tasks(System *system, char **argv, int argc, int optind, blkc
             return -1;
         }
 
-        strlcpy(task->path, argv[i], PATH_MAX);
+        strncpy(task->path, argv[i], PATH_MAX);
         task->sum = &sums[i - optind];
 
         if (system_enqueue(system, task) != 0) {

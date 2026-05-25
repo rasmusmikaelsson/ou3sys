@@ -1,7 +1,7 @@
 #!/bin/bash
 	
 # Path to benchmark
-DIR="/usr"
+DIR="/pkg/"
 
 # Build program
 make clean
